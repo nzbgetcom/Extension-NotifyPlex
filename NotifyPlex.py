@@ -12,21 +12,21 @@
 # Version 2.1.3
 #
 #
-# NOTE: This script is compatible to Python 2.x and Python 3.x, check README file for installation instructions.
+# NOTE: This script is compatible to Python 3.8+.
 
 ##############################################################################
 ### OPTIONS                                                                ###
 
 ## General
 
-# Use Silent Failure Mode (yes,no).
+# Use Silent Failure Mode (yes, no).
 #
 # Activate if you want NZBGet to report a SUCCESS status regardless of errors, in cases where PMS is offline.
 #silentFailure=no
 
 ## Plex Media Server
 
-# Refresh Plex Library (yes,no).
+# Refresh Plex Library (yes, no).
 #
 # Activate if you want NotifyPlex to refresh your Plex library
 #refreshLibrary=no
@@ -54,7 +54,7 @@
 # IP or hostname of your Plex Media Server including port (only 1 server is supported)
 #PlexHost=192.168.1.XXX:32400
 
-# Library Refresh Mode (Auto,Custom,Both).
+# Library Refresh Mode (Auto, Custom, Both).
 #
 # Select Refresh Mode: Auto will automatically detect your NZBGet category and refresh the appropriate sections, Custom will only refresh the sections you input into the Custom sections setting below, Both will auto-detect and refresh the Custom Sections
 #refreshMode=Auto
@@ -62,12 +62,12 @@
 # NZBGet Movies Category/Categories [Required for Auto Mode].
 #
 # List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to Movies (comma separated)
-#moviesCat=movies
+#moviesCat=Movies
 
 # NZBGet TV Category/Categories [Required for Auto Mode].
 #
 # List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to TV Shows (comma separated)
-#tvCat=tv
+#tvCat=Tv
 
 # Custom Plex Section(s) you would like to update [Optional].
 #
@@ -76,12 +76,12 @@
 
 ## Plex Home Theater
 
-# Send GUI Notification to Plex Home Theater (yes,no).
+# Send GUI Notification to Plex Home Theater (yes, no).
 #
 # Activate if you want NotifyPlex to Send a GUI notification to Plex Home Theater
 #guiShow=no
 
-# Use Direct NZB ProperName for notification (yes,no).
+# Use Direct NZB ProperName for notification (yes, no).
 #
 # Activate if you want to use the DNZB Header ProperName for the title of the media if available
 #dHeaders=yes
@@ -97,19 +97,13 @@
 import os
 import sys
 import json
+import urllib.parse
+import urllib.request
 from xml.etree.ElementTree import fromstring
 
 POSTPROCESS_SUCCESS = 93
 POSTPROCESS_ERROR = 94
 POSTPROCESS_NONE = 95
-
-try:
-    import requests
-except ImportError:
-    print('[ERROR] NOTIFYPLEX: Missing python package "requests". Please follow installation instructions in the '
-          'README file')
-    sys.exit(POSTPROCESS_ERROR)
-
 
 def get_auth_token(username, password):
     auth_url = 'https://my.plexapp.com/users/sign_in.xml'
@@ -119,23 +113,29 @@ def get_auth_token(username, password):
         'X-Plex-Platform-Version': '21.0',
         'X-Plex-Provides': 'controller',
         'X-Plex-Product': 'NotifyPlex',
-        'X-Plex-Version': "2.1.3",
+        'X-Plex-Version': '2.1.3',
         'X-Plex-Device': 'NZBGet',
         'X-Plex-Client-Identifier': '12287'
     }
 
     try:
-        auth_response = requests.post(auth_url, headers=headers, data=auth_params)
-        auth_response.raise_for_status()
-    except requests.RequestException:
-        return None
-    else:
-        root = fromstring(auth_response.content)
-        return root.attrib['authToken']
+        data = urllib.parse.urlencode(auth_params).encode('utf-8')
+        req = urllib.request.Request(auth_url, headers=headers, data=data, method='POST')
+        
+        with urllib.request.urlopen(req) as response:
+            if response.getcode() != 201:
+                return None
+
+            root = fromstring(response.read())
+            return root.attrib.get('authToken')
+    except Exception:
+        pass
+
+    return None
 
 
 def refresh_auto(movie_cats, tv_cats):
-    print('[DETAIL] NOTIFYPLEX: Auto-refreshing Plex Library')
+    print('[INFO] NOTIFYPLEX: Auto-refreshing Plex Library')
     movie_cats = movie_cats.replace(' ', '')
     movie_cats_split = movie_cats.split(',')
     tv_cats = tv_cats.replace(' ', '')
@@ -144,43 +144,46 @@ def refresh_auto(movie_cats, tv_cats):
     try:
         url = 'http://%s/library/sections' % plex_host
         params = {'X-Plex-Token': plex_auth_token}
-        section_response = requests.get(url, params=params, timeout=10)
-        section_response.raise_for_status()
-    except requests.RequestException as e:
+        full_url = url + '?' + urllib.parse.urlencode(params)
+        
+        req = urllib.request.Request(full_url)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() == 200:
+                section_response = response.read()
+                root = fromstring(section_response)
+                plex_sections = {'movie': [], 'show': []}
+
+                for directory in root.findall('Directory'):
+                    directory_type = directory.get('type')
+                    section_id = directory.get('key')
+                    if directory_type in plex_sections.keys():
+                        plex_sections[directory_type].append(section_id)
+
+                if nzb_cat in tv_cats_split:
+                    refresh_sections(plex_sections['show'], plex_auth_token)
+                elif nzb_cat in movie_cats_split:
+                    refresh_sections(plex_sections['movie'], plex_auth_token)
+                else:
+                    if silent_mode:
+                        print('[WARNING] NOTIFYPLEX: Category "%s" is not configured as a section to be refreshed. '
+                              'Silent failure mode active' % nzb_cat)
+                        sys.exit(POSTPROCESS_SUCCESS)
+                    else:
+                        print('[ERROR] NOTIFYPLEX: Category "%s" is not configured as a section to be refreshed.' % nzb_cat)
+                        sys.exit(POSTPROCESS_ERROR)
+    except urllib.error.URLError as e:
         if silent_mode:
             print('[WARNING] NOTIFYPLEX: Failed auto-detecting Plex sections. Silent failure mode active')
             sys.exit(POSTPROCESS_SUCCESS)
         else:
-            print('[ERROR] NOTIFYPLEX: Failed auto-detecting Plex sections. Check Network Connection, Plex server '
-                  'settings, Auth-Token and section numbers.')
+            print('[ERROR] NOTIFYPLEX: Failed auto-detecting Plex sections. '
+                  'Check Network Connection, Plex server settings, Auth-Token and section numbers.')
             print('[ERROR] NOTIFYPLEX: %s' % e)
-            sys.exit(POSTPROCESS_ERROR)
-
-    root = fromstring(section_response.content)
-    plex_sections = {'movie': [], 'show': []}
-
-    for directory in root.findall('Directory'):
-        directory_type = directory.get('type')
-        section_id = directory.get('key')
-        if directory_type in plex_sections.keys():
-            plex_sections[directory_type].append(section_id)
-
-    if nzb_cat in tv_cats_split:
-        refresh_sections(plex_sections['show'], plex_auth_token)
-    elif nzb_cat in movie_cats_split:
-        refresh_sections(plex_sections['movie'], plex_auth_token)
-    else:
-        if silent_mode:
-            print('[WARNING] NOTIFYPLEX: Category "%s" is not configured as a section to be refreshed. '
-                  'Silent failure mode active' % nzb_cat)
-            sys.exit(POSTPROCESS_SUCCESS)
-        else:
-            print('[ERROR] NOTIFYPLEX: Category "%s" is not configured as a section to be refreshed.' % nzb_cat)
             sys.exit(POSTPROCESS_ERROR)
 
 
 def refresh_custom_sections(raw_custom_section_ids):
-    print('[DETAIL] NOTIFYPLEX: Refreshing custom sections')
+    print('[INFO] NOTIFYPLEX: Refreshing custom sections')
     custom_section_ids = raw_custom_section_ids.replace(' ', '')
     custom_section_ids = custom_section_ids.split(',')
     refresh_sections(custom_section_ids, plex_auth_token)
@@ -191,27 +194,32 @@ def refresh_sections(plex_sections, auth_token):
 
     for section_id in plex_sections:
         refresh_url = 'http://%s/library/sections/%s/refresh' % (plex_host, section_id)
+        full_url = refresh_url + '?' + urllib.parse.urlencode(params)
+
         try:
-            response = requests.get(refresh_url, params=params, timeout=10)
-            response.raise_for_status()
-        except requests.RequestException as e:
+            req = urllib.request.Request(full_url)
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.getcode() == 200:
+                    print('[INFO] NOTIFYPLEX: Targeted Plex update for section %s complete' % section_id)
+                else:
+                    raise urllib.error.URLError('HTTP Error: %d' % response.getcode())
+        except urllib.error.URLError as e:
             if silent_mode:
                 print('[WARNING] NOTIFYPLEX: Failed updating section %s. Silent failure mode active' % section_id)
                 sys.exit(POSTPROCESS_SUCCESS)
             else:
-                print('[ERROR] NOTIFYPLEX: Failed updating section %s. Check Network Connection, Plex server '
-                      'settings, Auth-Token and section numbers.' % section_id)
+                print('[ERROR] NOTIFYPLEX: Failed updating section %s. '
+                      'Check Network Connection, Plex server settings, Auth-Token and section numbers.' % section_id)
                 print('[ERROR] NOTIFYPLEX: %s' % e)
                 sys.exit(POSTPROCESS_ERROR)
-        else:
-            print('[INFO] NOTIFYPLEX: Targeted Plex update for section %s complete' % section_id)
 
 
 def show_gui_notification(raw_pht_ips):
-    print('[DETAIL] NOTIFYPLEX: Sending GUI notification')
-    d_headers = os.environ['NZBPO_DHEADERS'] == 'yes'
+    print('[INFO] NOTIFYPLEX: Sending GUI notification')
+    d_headers = os.environ.get('NZBPO_DHEADERS', 'no') == 'yes'
     pht_url = raw_pht_ips.replace(' ', '')
     pht_url_split = pht_url.split(',')
+
     for pht_url in pht_url_split:
         if d_headers:
             if (proper_name != '') and (proper_ep != ''):
@@ -233,12 +241,15 @@ def show_gui_notification(raw_pht_ips):
             'method': 'GUI.ShowNotification',
             'params': {'title': 'Downloaded', 'message': gui_text}
         }
+
         try:
-            requests.post(pht_rpc_url, data=json.dumps(payload), headers=headers, timeout=10)
-        except requests.RequestException as e:
+            data = json.dumps(payload).encode('utf-8')
+            req = urllib.request.Request(pht_rpc_url, data=data, headers=headers, method='POST')
+            
+            with urllib.request.urlopen(req, timeout=10) as _:
+                print('[INFO] NOTIFYPLEX: GUI Notification to PHT successful')
+        except urllib.error.URLError as e:
             print('[WARNING] NOTIFYPLEX: GUI Notification to PHT failed: %s' % e)
-        else:
-            print('[INFO] NOTIFYPLEX: GUI Notification to PHT successful')
 
 
 NZBGetVersion = os.environ['NZBOP_VERSION']
@@ -291,7 +302,7 @@ if authorize_mode:
     plex_auth_token = get_auth_token(plex_username, plex_password)
 
     if plex_auth_token is not None:
-        print('[DETAIL] Authorization to Plex.tv successful.')
+        print('[INFO] Authorization to Plex.tv successful.')
         print('[INFO] Copy & paste into PlexAuthToken, then save and reload.')
         print('[INFO] Auth-Token: %s' % plex_auth_token)
         sys.exit(POSTPROCESS_SUCCESS)
