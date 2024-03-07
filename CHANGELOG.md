@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2024-03-07
+### Added
+- Python 3.8+ support
+- Tests
+- "release" and "tests" pipelines
+
+### Changed
+- Use the standard "urllib" library instead of "requests"
+- Removed Plex Home Theater notifications due to deprication
+- README.md
 
 ## [2.1.4] - 2020-05-12
 
