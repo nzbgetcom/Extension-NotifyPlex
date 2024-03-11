@@ -88,12 +88,12 @@ POSTPROCESS_SUCCESS = 93
 POSTPROCESS_ERROR = 94
 POSTPROCESS_NONE = 95
 
-def get_auth_token(username, password):
+def get_auth_token(username, password, nzbget_version):
 	auth_url = 'https://my.plexapp.com/users/sign_in.xml'
 	auth_params = {'user[login]': username, 'user[password]': password}
 	headers = {
 		'X-Plex-Platform': 'NZBGet',
-		'X-Plex-Platform-Version': '21.0',
+		'X-Plex-Platform-Version': nzbget_version,
 		'X-Plex-Provides': 'controller',
 		'X-Plex-Product': 'NotifyPlex',
 		'X-Plex-Version': '2.1.3',
@@ -230,7 +230,7 @@ if authorize_mode:
 
 	plex_username = os.environ['NZBPO_PLEXUSER']
 	plex_password = os.environ['NZBPO_PLEXPASSWORD']
-	plex_auth_token = get_auth_token(plex_username, plex_password)
+	plex_auth_token = get_auth_token(plex_username, plex_password, NZBGetVersion)
 
 	if plex_auth_token is not None:
 		print('[INFO] Authorization to Plex.tv successful.')
