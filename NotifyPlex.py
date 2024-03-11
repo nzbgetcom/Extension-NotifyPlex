@@ -162,7 +162,7 @@ def refresh_auto(movie_cats, tv_cats):
 		else:
 			print('[ERROR] NOTIFYPLEX: Failed auto-detecting Plex sections. '
 				  'Check Network Connection, Plex server settings, Auth-Token and section numbers.')
-			print('[ERROR] NOTIFYPLEX: %s' % e)
+			print('[ERROR] NOTIFYPLEX: %s' % e.reason)
 			sys.exit(POSTPROCESS_ERROR)
 
 
@@ -194,7 +194,7 @@ def refresh_sections(plex_sections, auth_token):
 			else:
 				print('[ERROR] NOTIFYPLEX: Failed updating section %s. ' +
 						'Check Network Connection, Plex server settings, Auth-Token and section numbers.' % section_id)
-				print('[ERROR] NOTIFYPLEX: %s' % e)
+				print('[ERROR] NOTIFYPLEX: %s' % e.reason)
 				sys.exit(POSTPROCESS_ERROR)
 
 NZBGetVersion = os.environ['NZBOP_VERSION']
