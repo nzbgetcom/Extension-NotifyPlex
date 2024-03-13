@@ -49,9 +49,8 @@ class MockServerRequestHandler(http.server.BaseHTTPRequestHandler):
 		b'composite="/library/sections/2/composite/1709800247" filters="1" refreshing="0" '+
 		b'thumb="/:/resources/movie.png" key="2" type="movie" title="Movies" agent="tv.plex.agents.movie" ' +
 		b'scanner="Plex Movie" language="en-US" uuid="d495999b-6b8c-4676-9c1c-78e61175f0f5" ' +
-		b'updatedAt="1709711552" createdAt="1709705968" scannedAt="1709800247" content="1" directory="1" contentChangedAt="1691" hidden="0">'
-		b'<Location id="10" path="D:\Movies" />' +
-		b'</Directory>' +
+		b'updatedAt="1709711552" createdAt="1709705968" scannedAt="1709800247" content="1" directory="1" contentChangedAt="1691" hidden="0">' +
+		b'<Location id="10" path="D:\Movies" /></Directory>' +
 		b'<Directory allowSync="1" art="/:/resources/show-fanart.jpg" ' +
 		b'composite="/library/sections/3/composite/1709799889" filters="1" refreshing="0" ' +
 		b'thumb="/:/resources/show.png" key="3" type="show" title="Series" agent="tv.plex.agents.series" scanner="Plex TV Series" ' +
@@ -67,7 +66,7 @@ def get_python():
 
 def run_script():
 	sys.stdout.flush()
-	proc = subprocess.Popen([get_python(), root + '/NotifyPlex.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy())
+	proc = subprocess.Popen([get_python(), root + '/main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy())
 	out, err = proc.communicate()
 	proc.pid
 	ret_code = proc.returncode
@@ -109,6 +108,7 @@ class Tests(unittest.TestCase):
 		thread.start()
 		[_, code, _] = run_script()
 		server.shutdown()
+		server.server_close()
 		thread.join()
 		self.assertEqual(code, POSTPROCESS_SUCCESS)
 	
@@ -122,6 +122,7 @@ class Tests(unittest.TestCase):
 		thread.start()
 		[_, code, _] = run_script()
 		server.shutdown()
+		server.server_close()
 		thread.join()
 		self.assertEqual(code, POSTPROCESS_SUCCESS)
 
@@ -135,6 +136,7 @@ class Tests(unittest.TestCase):
 		thread.start()
 		[_, code, _] = run_script()
 		server.shutdown()
+		server.server_close()
 		thread.join()
 		self.assertEqual(code, POSTPROCESS_SUCCESS)
 
