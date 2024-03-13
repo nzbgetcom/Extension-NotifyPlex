@@ -129,7 +129,8 @@
 				"",
 				"Section Number(s) corresponding to your Plex library (comma separated).",
 				"These sections will only refreshed if Library Refesh Mode is set to Custom or Both.",
-				"NOTE: Optional"
+				"NOTE: Is Optional. Can be easily found in URL, e.g: 192.168.1.XXX:32400...?source=3 - 3 is what we need",
+				"NOTE: \"Plex video files scanner\" is preferable to use"
 			],
 			"select": []
 		}

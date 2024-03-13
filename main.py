@@ -112,8 +112,8 @@ def refresh_sections(plex_sections, auth_token):
 				print('[WARNING] NOTIFYPLEX: Failed updating section %s. Silent failure mode active' % section_id)
 				sys.exit(POSTPROCESS_SUCCESS)
 			else:
-				print('[ERROR] NOTIFYPLEX: Failed updating section %s. ' +
-						'Check Network Connection, Plex server settings, Auth-Token and section numbers.' % section_id)
+				print('[ERROR] NOTIFYPLEX: Failed updating section %s. Check Network Connection, Plex server settings, Auth-Token and section numbers.' 
+		  				% section_id)
 				print('[ERROR] NOTIFYPLEX: %s' % e.reason)
 				sys.exit(POSTPROCESS_ERROR)
 
@@ -125,8 +125,8 @@ if NZBGetVersion[0:5] < '11.1':
 required_options = ('NZBPO_SILENTFAILURE', 'NZBPO_REFRESHLIBRARY')
 for optname in required_options:
 	if optname not in os.environ:
-		print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. ' +
-				'Please check script settings' % optname[6:])
+		print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. Please check script settings' 
+				% optname[6:])
 		sys.exit(POSTPROCESS_ERROR)
 
 
@@ -144,8 +144,8 @@ if authorize_mode:
 	required_options = ('NZBPO_PLEXUSER', 'NZBPO_PLEXPASSWORD')
 	for optname in required_options:
 		if optname not in os.environ:
-			print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. ' +
-					'Please check script settings' % optname[6:])
+			print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. Please check script settings' 
+		 		% optname[6:])
 			sys.exit(POSTPROCESS_ERROR)
 
 	plex_username = os.environ['NZBPO_PLEXUSER']
@@ -164,8 +164,8 @@ if authorize_mode:
 required_options = ('NZBPO_MOVIESCAT', 'NZBPO_PLEXAUTHTOKEN', 'NZBPO_PLEXHOST', 'NZBPO_REFRESHMODE', 'NZBPO_TVCAT')
 for optname in required_options:
 	if os.environ.get(optname) in (None, ''):
-		print('[ERROR] NOTIFYPLEX: Option "%s" is missing or empty in configuration file. ' +
-				'Please check script settings' % optname[6:])
+		print('[ERROR] NOTIFYPLEX: Option "%s" is missing or empty in configuration file. Please check script settings' 
+				% optname[6:])
 		sys.exit(POSTPROCESS_ERROR)
 
 raw_custom_section_ids = os.environ['NZBPO_CUSTOMPLEXSECTION']
