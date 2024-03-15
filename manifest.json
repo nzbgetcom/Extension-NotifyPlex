@@ -1,0 +1,153 @@
+{
+	"main": "main.py",
+	"name": "NotifyPlex",
+	"homepage": "https://github.com/nzbgetcom/Extension-NotifyPlex/",
+	"kind": "POST-PROCESSING",
+	"displayName": "Notify Plex",
+	"version": "4.0",
+	"author": "mannibis",
+	"license": "GNU",
+	"about": "Post-Processing extension to Update Plex Library.",
+	"queueEvents": "",
+	"description": [
+		"This script triggers a targeted library update to your Plex Media Server"
+	],
+	"requirements": [
+		"This script is compatible to Python 3.8 and above.",
+		"If using VideoSort or other Sort/Rename Scripts, run NotifyPlex after those scripts have sorted/renamed your files."
+	],
+	"options": [
+		{
+			"name": "silentFailure",
+			"displayName": "Silent Failure",
+			"value": "no",
+			"description": [
+				"Use Silent Failure Mode.",
+				"",
+				"Activate if you want NZBGet to report a SUCCESS status regardless of errors, in cases where PMS is offline."
+			],
+			"select": ["yes", "no"]
+		},
+		{
+			"name": "refreshLibrary",
+			"displayName": "Refresh Library",
+			"value": "no",
+			"description": [
+				"Refresh Plex Library.",
+				"",
+				"Activate if you want NotifyPlex to refresh your Plex library."
+			],
+			"select": ["yes", "no"]
+		},
+		{
+			"name": "PlexUser",
+			"displayName": "Plex User",
+			"value": "",
+			"description": [
+				"Plex.tv Username.",
+				"NOTE: Required to generate Plex Auth-Token"
+			],
+			"select": []
+		},
+		{
+			"name": "PlexPassword",
+			"displayName": "Plex Password",
+			"value": "",
+			"description": [
+				"Plex.tv Password.",
+				"NOTE: Required to generate Plex Auth-Token"
+			],
+			"select": []
+		},
+		{
+			"name": "PlexAuthToken",
+			"displayName": "Plex AuthToken",
+			"value": "",
+			"description": [
+				"Auth-Token for this script.",
+				"",
+				"Use the above button to authorize this script with Plex.tv",
+				"NOTE: The Password can be safely removing when setting the Auth-Token."
+			],
+			"select": []
+		},
+		{
+			"name": "PlexHost",
+			"displayName": "Plex Host",
+			"value": "192.168.1.XXX:32400",
+			"description": [
+				"Plex Media Server Host.",
+				"",
+				"IP or hostname of your Plex Media Server including port (only 1 server is supported)."
+			],
+			"select": []
+		},
+		{
+			"name": "refreshMode",
+			"displayName": "Refresh Mode",
+			"value": "Auto",
+			"description": [
+				"Library Refresh Mode.",
+				"",
+				"Select Refresh Mode:",
+				"Auto will automatically detect your NZBGet category and refresh the appropriate sections;",
+				"Custom will only refresh the sections you input into the Custom sections setting below;",
+				"Both will auto-detect and refresh the Custom Sections."
+			],
+			"select": ["Auto", "Custom", "Both"]
+		},
+		{
+			"name": "moviesCat",
+			"displayName": "Movies Category",
+			"value": "Movies",
+			"description": [
+				"NZBGet Movies Category/Categories.",
+				"",
+				"List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to Movies (comma separated).",
+				"NOTE: Required for Auto Mode"
+			],
+			"select": []
+		},
+		{
+			"name": "tvCat",
+			"displayName": "TV Category",
+			"value": "TV",
+			"description": [
+				"NZBGet TV Category/Categories.",
+				"",
+				"List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to TV Shows (comma separated).",
+				"NOTE: Required for Auto Mode"
+			],
+			"select": []
+		},
+		{
+			"name": "customPlexSection",
+			"displayName": "Custom Plex Section",
+			"value": "",
+			"description": [
+				"Custom Plex Section(s) you would like to update.",
+				"",
+				"Section Number(s) corresponding to your Plex library (comma separated).",
+				"These sections will only refreshed if Library Refesh Mode is set to Custom or Both.",
+				"NOTE: Is Optional. Can be easily found in URL, e.g: 192.168.1.XXX:32400...?source=3 - 3 is what we need",
+				"NOTE: \"Plex video files scanner\" is preferable to use"
+			],
+			"select": []
+		}
+	],
+	"commands": [
+        {
+            "name": "PlexAuthorize",
+            "action": "Generate Plex Auth-Token",
+            "displayName": "Plex Authorize",
+            "description": [
+                "Authorize script with Plex server.",
+                "",
+                "Once authorized, it will be visible in your Plex server settings as \"NotifyPlex\"",
+                "in the \"Authorized Devices\" section.",
+				"NOTE: Required if refreshLibrary is enabled."
+            ]
+        }
+    ],
+	"taskTime": ""
+}

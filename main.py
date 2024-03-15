@@ -1,83 +1,3 @@
-#!/usr/bin/env python
-#
-##############################################################################
-### NZBGET POST-PROCESSING SCRIPT                                          ###
-
-# Post-Processing Script to Update Plex Library and Notify PHT.
-#
-# This script triggers a targeted library update to your Plex Media Server and sends a GUI Notification to Plex Home Theater.
-# Auto-Detection of NZBGet category and Plex sections is now supported. This script also works with Plex Home enabled.
-#
-# Copyright (C) 2019 mannibis
-# Version 3.0.0
-#
-#
-# NOTE: This script is compatible to Python 3.8 and above.
-# NOTE: If using VideoSort or other Sort/Rename Scripts, run NotifyPlex after those scripts have sorted/renamed your files.
-
-##############################################################################
-### OPTIONS                                                                ###
-
-## General
-
-# Use Silent Failure Mode (yes, no).
-#
-# Activate if you want NZBGet to report a SUCCESS status regardless of errors, in cases where PMS is offline.
-#silentFailure=no
-
-## Plex Media Server
-
-# Refresh Plex Library (yes, no).
-#
-# Activate if you want NotifyPlex to refresh your Plex library
-#refreshLibrary=no
-
-# Plex.tv Username [Required to generate Plex Auth-Token]
-#PlexUser=
-
-# Plex.tv Password [Required to generate Plex Auth-Token]
-#PlexPassword=
-
-# Authorize script with Plex server [Required if refreshLibrary is enabled].
-#
-# Once authorized, it will be visible in your Plex server settings as "NotifyPlex"
-# in the "Authorized Devices" section.
-#PlexAuthorize@Generate Plex Auth-Token
-
-# Auth-Token for this script.
-#
-# Use the above button to authorize this script with Plex.tv
-# NOTE: The Password can be safely removing when setting the Auth-Token.
-#PlexAuthToken=
-
-# Plex Media Server Host.
-#
-# IP or hostname of your Plex Media Server including port (only 1 server is supported)
-#PlexHost=192.168.1.XXX:32400
-
-# Library Refresh Mode (Auto, Custom, Both).
-#
-# Select Refresh Mode: Auto will automatically detect your NZBGet category and refresh the appropriate sections, Custom will only refresh the sections you input into the Custom sections setting below, Both will auto-detect and refresh the Custom Sections
-#refreshMode=Auto
-
-# NZBGet Movies Category/Categories [Required for Auto Mode].
-#
-# List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to Movies (comma separated)
-#moviesCat=Movies
-
-# NZBGet TV Category/Categories [Required for Auto Mode].
-#
-# List the name(s) of your NZBGet categories (CategoryX.Name) that correspond to TV Shows (comma separated)
-#tvCat=TV
-
-# Custom Plex Section(s) you would like to update [Optional].
-#
-# Section Number(s) corresponding to your Plex library (comma separated). These sections will only refreshed if Library Refesh Mode is set to Custom or Both
-#customPlexSection=
-
-### NZBGET POST-PROCESSING SCRIPT                                          ###
-##############################################################################
-
 import os
 import sys
 import urllib.parse
@@ -192,8 +112,8 @@ def refresh_sections(plex_sections, auth_token):
 				print('[WARNING] NOTIFYPLEX: Failed updating section %s. Silent failure mode active' % section_id)
 				sys.exit(POSTPROCESS_SUCCESS)
 			else:
-				print('[ERROR] NOTIFYPLEX: Failed updating section %s. ' +
-						'Check Network Connection, Plex server settings, Auth-Token and section numbers.' % section_id)
+				print('[ERROR] NOTIFYPLEX: Failed updating section %s. Check Network Connection, Plex server settings, Auth-Token and section numbers.' 
+		  				% section_id)
 				print('[ERROR] NOTIFYPLEX: %s' % e.reason)
 				sys.exit(POSTPROCESS_ERROR)
 
@@ -205,8 +125,8 @@ if NZBGetVersion[0:5] < '11.1':
 required_options = ('NZBPO_SILENTFAILURE', 'NZBPO_REFRESHLIBRARY')
 for optname in required_options:
 	if optname not in os.environ:
-		print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. ' +
-				'Please check script settings' % optname[6:])
+		print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. Please check script settings' 
+				% optname[6:])
 		sys.exit(POSTPROCESS_ERROR)
 
 
@@ -224,8 +144,8 @@ if authorize_mode:
 	required_options = ('NZBPO_PLEXUSER', 'NZBPO_PLEXPASSWORD')
 	for optname in required_options:
 		if optname not in os.environ:
-			print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. ' +
-					'Please check script settings' % optname[6:])
+			print('[ERROR] NOTIFYPLEX: Option %s is missing in configuration file. Please check script settings' 
+		 		% optname[6:])
 			sys.exit(POSTPROCESS_ERROR)
 
 	plex_username = os.environ['NZBPO_PLEXUSER']
@@ -244,8 +164,8 @@ if authorize_mode:
 required_options = ('NZBPO_MOVIESCAT', 'NZBPO_PLEXAUTHTOKEN', 'NZBPO_PLEXHOST', 'NZBPO_REFRESHMODE', 'NZBPO_TVCAT')
 for optname in required_options:
 	if os.environ.get(optname) in (None, ''):
-		print('[ERROR] NOTIFYPLEX: Option "%s" is missing or empty in configuration file. ' +
-				'Please check script settings' % optname[6:])
+		print('[ERROR] NOTIFYPLEX: Option "%s" is missing or empty in configuration file. Please check script settings' 
+				% optname[6:])
 		sys.exit(POSTPROCESS_ERROR)
 
 raw_custom_section_ids = os.environ['NZBPO_CUSTOMPLEXSECTION']
